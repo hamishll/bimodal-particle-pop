@@ -1,0 +1,564 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>bimodaldist</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-02-10"><meta name="DC.source" content="bimodaldist.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">PLOTTING DISTRIBUTION BOUNDS</a></li><li><a href="#3">GENERATING RANDOM SAMPLES, 2D DISTRIBUTIONS</a></li><li><a href="#4">REPEATING FOR A SECOND SAMPLE SET</a></li><li><a href="#5">RNG DISTRIBUTION ACROSS CIRCLE(MONTE CARLO METHOD)</a></li><li><a href="#6">PLOTTING</a></li></ul></div><pre class="codeinput">clear <span class="string">all</span>;
+close <span class="string">all</span>;
+
+tic;
+</pre><h2>PLOTTING DISTRIBUTION BOUNDS<a name="2"></a></h2><pre class="codeinput"><span class="comment">% X-RANGE [x]</span>
+xlim = 1;
+samples = 10;
+x = 0:(1/samples):xlim;
+
+<span class="comment">% CONSTANT DISTRIBUTION [y_k]</span>
+y_k = [];
+<span class="keyword">for</span> i=1:samples+1
+    yi_k = 1;
+    y_k = [y_k, yi_k];
+<span class="keyword">end</span>
+
+<span class="comment">% LINEAR DISTRIBUTION [y_l] % max value for m = 2</span>
+y_l = [];
+m = 1.3; <span class="comment">% only edit this value</span>
+c = 1-(xlim/2)*m;
+<span class="keyword">for</span> i=1:samples+1
+    yi_l = m*x(i)+c;
+    y_l = [y_l, yi_l];
+<span class="keyword">end</span>
+
+<span class="comment">% EXPONENTIAL DISTRIBUTION [y_e] % 1-x</span>
+y_e = [];
+a = 5;
+<span class="keyword">for</span> i=1:samples+1
+    yi_e = exp(-a*(1-x(i)));
+    y_e = [y_e, yi_e];
+<span class="keyword">end</span>
+</pre><h2>GENERATING RANDOM SAMPLES, 2D DISTRIBUTIONS<a name="3"></a></h2><pre class="codeinput"><span class="comment">% variables</span>
+N = 1000;       <span class="comment">% number of stochastic samples</span>
+n_mean = 50;     <span class="comment">% flake size</span>
+n_var = 10;    <span class="comment">% flake variance</span>
+
+<span class="comment">% declaring empty arrays</span>
+x_values = [];
+y_values = [];
+a_values = [];
+s_values = [];
+x1_values = [];
+y1_values = [];
+quadrant = 1;
+count = 1;
+
+<span class="keyword">while</span> count &lt; N
+    rng_x = rand(1);
+
+    <span class="comment">% LINEAR</span>
+    y = m*rng_x + c;
+    y_max = m*1 + c;
+
+    <span class="comment">% EXPONENTIAL</span>
+    <span class="comment">%a = 5;</span>
+    <span class="comment">%y = 1 * exp(-a*(xlim-rng_x));</span>
+    <span class="comment">%y_max = 1 * exp(0);</span>
+
+    rng_y = rand(1)*(y_max);
+    rng_a = rand(1)*2*pi/4;
+    rng_s = n_mean + randn(1)*n_var;
+
+
+
+    <span class="comment">% evaluating whether values fall within probability density</span>
+    <span class="keyword">if</span> (rng_y &lt; y)
+        x_values = [x_values, rng_x];
+        y_values = [y_values, rng_y]; <span class="comment">% this line is irrelevant to 2D distribution</span>
+        a_values = [a_values, rng_a];
+        s_values = [s_values, rng_s];
+
+        h = rng_x;  <span class="comment">% h is the hypoteneuse</span>
+        dx = h - h*cos(rng_a);
+        dy = h*sin(rng_a);
+
+        <span class="comment">% assigning points across each quadrant</span>
+        <span class="keyword">if</span> quadrant == 1
+            x1_values = [x1_values, (h - dx)];
+            y1_values = [y1_values, (+dy)];
+
+        <span class="keyword">elseif</span> quadrant == 2
+            x1_values = [x1_values, (-h + dx)];
+            y1_values = [y1_values, (+dy)];
+
+        <span class="keyword">elseif</span> quadrant == 3
+            x1_values = [x1_values, (-h + dx)];
+            y1_values = [y1_values, (-dy)];
+
+        <span class="keyword">elseif</span> quadrant == 4
+            x1_values = [x1_values, (+h - dx)];
+            y1_values = [y1_values, (-dy)];
+        <span class="keyword">end</span>
+
+        <span class="comment">% increment counter</span>
+        <span class="keyword">if</span> quadrant == 4
+            quadrant = 1;
+        <span class="keyword">else</span>
+            quadrant = quadrant + 1;
+        <span class="keyword">end</span>
+        count = count + 1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>REPEATING FOR A SECOND SAMPLE SET<a name="4"></a></h2><pre class="codeinput"><span class="comment">% variables</span>
+N2 = 1000;      <span class="comment">% number of stochastic samples</span>
+n_mean = 20;     <span class="comment">% flake size</span>
+n_var = 4;    <span class="comment">% flake variance</span>
+
+<span class="comment">% declaring empty arrays</span>
+x_values_s2 = [];
+y_values_s2 = [];
+a_values_s2 = [];
+s_values_s2 = [];
+x1_values_s2 = [];
+y1_values_s2 = [];
+quadrant = 1;
+count = 1;
+
+<span class="keyword">while</span> count &lt; N2
+    rng_x = rand(1);
+
+    <span class="comment">% LINEAR</span>
+    <span class="comment">%y = m*rng_x + c;</span>
+    <span class="comment">%y_max = m*1 + c;</span>
+
+    <span class="comment">% EXPONENTIAL</span>
+    a = 5;
+    y = 1 * exp(-a*(xlim-rng_x));
+    y_max = 1 * exp(0);
+
+    rng_y = rand(1)*y_max;
+    rng_a = rand(1)*2*pi/4;
+    rng_s = n_mean + randn(1)*n_var;
+
+    <span class="comment">% LINEAR</span>
+    <span class="comment">%y = m*rng_x + c;</span>
+
+    <span class="comment">% EXPONENTIAL</span>
+    a = 5;
+    y = 1 * exp(-a*(xlim-rng_x));
+
+    <span class="comment">% evaluating whether values fall within probability density</span>
+    <span class="keyword">if</span> (rng_y &lt; y)
+        x_values_s2 = [x_values_s2, rng_x];
+        y_values_s2 = [y_values_s2, rng_y]; <span class="comment">% this line is irrelevant to 2D distribution</span>
+        a_values_s2 = [a_values_s2, rng_a];
+        s_values_s2 = [s_values_s2, rng_s];
+
+        h = rng_x;  <span class="comment">% h is the hypoteneuse</span>
+        dx = h - h*cos(rng_a);
+        dy = h*sin(rng_a);
+
+        <span class="comment">% assigning points across each quadrant</span>
+        <span class="keyword">if</span> quadrant == 1
+            x1_values_s2 = [x1_values_s2, (h - dx)];
+            y1_values_s2 = [y1_values_s2, (+dy)];
+
+        <span class="keyword">elseif</span> quadrant == 2
+            x1_values_s2 = [x1_values_s2, (-h + dx)];
+            y1_values_s2 = [y1_values_s2, (+dy)];
+
+        <span class="keyword">elseif</span> quadrant == 3
+            x1_values_s2 = [x1_values_s2, (-h + dx)];
+            y1_values_s2 = [y1_values_s2, (-dy)];
+
+        <span class="keyword">elseif</span> quadrant == 4
+            x1_values_s2 = [x1_values_s2, (+h - dx)];
+            y1_values_s2 = [y1_values_s2, (-dy)];
+        <span class="keyword">end</span>
+
+        <span class="comment">% increment counter</span>
+        <span class="keyword">if</span> quadrant == 4
+            quadrant = 1;
+        <span class="keyword">else</span>
+            quadrant = quadrant + 1;
+        <span class="keyword">end</span>
+        count = count + 1;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>RNG DISTRIBUTION ACROSS CIRCLE(MONTE CARLO METHOD)<a name="5"></a></h2><p>for circle of radius 1</p><pre class="codeinput">r_dist_x = [];
+r_dist_y = [];
+
+<span class="keyword">for</span> i=1:N
+    r_x = rand(1);
+    r_y = rand(1);
+    r_ylim = sqrt(1 - r_x^2);
+    <span class="keyword">if</span> r_y &lt; r_ylim
+        r_dist_x = [r_dist_x, r_x];
+        r_dist_y = [r_dist_y, r_y];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>PLOTTING<a name="6"></a></h2><pre class="codeinput">figure(1);
+set(figure(1), <span class="string">'Position'</span>, [100, 100, 1000, 400]);
+
+<span class="comment">% 2D circular distribution</span>
+subplot(1,2,1)
+title(<span class="string">'2D Distribution'</span>)
+hold <span class="string">on</span>
+scatter(x1_values, y1_values, s_values, <span class="string">'r'</span>);
+scatter(x1_values_s2, y1_values_s2, s_values_s2, <span class="string">'b'</span>);
+axis([-xlim, xlim, -xlim, xlim]);
+<span class="comment">%also plot +x,+y lines</span>
+plot([0,1],[0,0]);
+plot([0,0],[0,1]);
+hold <span class="string">off</span>
+
+<span class="comment">% 1D distribution</span>
+subplot(1,2,2)
+title(<span class="string">'Radial Distribution Probability Density'</span>)
+hold <span class="string">on</span>
+plot(x,y_k);
+plot(x,y_l);
+plot(x,y_e);
+scatter(x_values, y_values, s_values, <span class="string">'r'</span>);
+scatter(x_values_s2, y_values_s2, s_values_s2, <span class="string">'b'</span>);
+legend(<span class="string">'constant'</span>, <span class="string">'linear'</span>, <span class="string">'exponential'</span>);
+axis([0,1,0,2]);
+hold <span class="string">off</span>
+
+<span class="comment">%FIGURE(2):</span>
+<span class="comment">%figure(2);</span>
+<span class="comment">%set(figure(2), 'Position', [550, 100, 1000, 400]);</span>
+<span class="comment">%subplot(1,2,1)</span>
+<span class="comment">%title('Random Sampling within a circle');</span>
+<span class="comment">%scatter(r_dist_x, r_dist_y);</span>
+<span class="comment">%axis([0,1,0,1]);</span>
+<span class="comment">%subplot(1,2,2)</span>
+<span class="comment">%title('Probability density across x');</span>
+<span class="comment">%bins = 50;</span>
+<span class="comment">%[areaDistribution, binAreas] = hist(r_dist_y, bins);</span>
+<span class="comment">%bar(binAreas, areaDistribution, 'BarWidth', 1.0);</span>
+<span class="comment">%axis([0,1,0,inf]);</span>
+
+t = toc;
+disp(<span class="string">'Time for analysis (sec):'</span>)
+disp(t)
+</pre><pre class="codeoutput">Time for analysis (sec):
+    1.3049
+
+</pre><img vspace="5" hspace="5" src="bimodaldist_01.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+clear all;
+close all;
+
+tic;
+
+%% PLOTTING DISTRIBUTION BOUNDS
+
+% X-RANGE [x]
+xlim = 1;
+samples = 10;
+x = 0:(1/samples):xlim;
+
+% CONSTANT DISTRIBUTION [y_k]
+y_k = [];
+for i=1:samples+1
+    yi_k = 1;
+    y_k = [y_k, yi_k];
+end
+
+% LINEAR DISTRIBUTION [y_l] % max value for m = 2
+y_l = [];
+m = 1.3; % only edit this value
+c = 1-(xlim/2)*m;
+for i=1:samples+1
+    yi_l = m*x(i)+c;
+    y_l = [y_l, yi_l];
+end
+
+% EXPONENTIAL DISTRIBUTION [y_e] % 1-x
+y_e = [];
+a = 5;
+for i=1:samples+1
+    yi_e = exp(-a*(1-x(i)));
+    y_e = [y_e, yi_e];
+end
+
+%% GENERATING RANDOM SAMPLES, 2D DISTRIBUTIONS
+
+% variables
+N = 1000;       % number of stochastic samples
+n_mean = 50;     % flake size
+n_var = 10;    % flake variance
+
+% declaring empty arrays
+x_values = [];
+y_values = [];
+a_values = [];
+s_values = [];
+x1_values = [];
+y1_values = [];
+quadrant = 1;
+count = 1;
+
+while count < N
+    rng_x = rand(1);
+    
+    % LINEAR
+    y = m*rng_x + c;
+    y_max = m*1 + c;
+    
+    % EXPONENTIAL
+    %a = 5;
+    %y = 1 * exp(-a*(xlim-rng_x));
+    %y_max = 1 * exp(0);
+    
+    rng_y = rand(1)*(y_max);
+    rng_a = rand(1)*2*pi/4;
+    rng_s = n_mean + randn(1)*n_var;
+    
+
+    
+    % evaluating whether values fall within probability density
+    if (rng_y < y)
+        x_values = [x_values, rng_x];
+        y_values = [y_values, rng_y]; % this line is irrelevant to 2D distribution
+        a_values = [a_values, rng_a];
+        s_values = [s_values, rng_s];
+        
+        h = rng_x;  % h is the hypoteneuse
+        dx = h - h*cos(rng_a);
+        dy = h*sin(rng_a);
+        
+        % assigning points across each quadrant
+        if quadrant == 1
+            x1_values = [x1_values, (h - dx)];
+            y1_values = [y1_values, (+dy)];
+        
+        elseif quadrant == 2
+            x1_values = [x1_values, (-h + dx)];
+            y1_values = [y1_values, (+dy)];
+        
+        elseif quadrant == 3
+            x1_values = [x1_values, (-h + dx)];
+            y1_values = [y1_values, (-dy)];
+        
+        elseif quadrant == 4
+            x1_values = [x1_values, (+h - dx)];
+            y1_values = [y1_values, (-dy)];
+        end
+        
+        % increment counter
+        if quadrant == 4
+            quadrant = 1;
+        else
+            quadrant = quadrant + 1;
+        end
+        count = count + 1;
+    end
+end
+
+%%  REPEATING FOR A SECOND SAMPLE SET
+
+% variables
+N2 = 1000;      % number of stochastic samples
+n_mean = 20;     % flake size
+n_var = 4;    % flake variance
+
+% declaring empty arrays
+x_values_s2 = [];
+y_values_s2 = [];
+a_values_s2 = [];
+s_values_s2 = [];
+x1_values_s2 = [];
+y1_values_s2 = [];
+quadrant = 1;
+count = 1;
+
+while count < N2
+    rng_x = rand(1);
+    
+    % LINEAR
+    %y = m*rng_x + c;
+    %y_max = m*1 + c;
+    
+    % EXPONENTIAL
+    a = 5;
+    y = 1 * exp(-a*(xlim-rng_x));
+    y_max = 1 * exp(0);
+    
+    rng_y = rand(1)*y_max;
+    rng_a = rand(1)*2*pi/4;
+    rng_s = n_mean + randn(1)*n_var;
+    
+    % LINEAR
+    %y = m*rng_x + c;
+    
+    % EXPONENTIAL
+    a = 5;
+    y = 1 * exp(-a*(xlim-rng_x));
+    
+    % evaluating whether values fall within probability density
+    if (rng_y < y)
+        x_values_s2 = [x_values_s2, rng_x];
+        y_values_s2 = [y_values_s2, rng_y]; % this line is irrelevant to 2D distribution
+        a_values_s2 = [a_values_s2, rng_a];
+        s_values_s2 = [s_values_s2, rng_s];
+        
+        h = rng_x;  % h is the hypoteneuse
+        dx = h - h*cos(rng_a);
+        dy = h*sin(rng_a);
+        
+        % assigning points across each quadrant
+        if quadrant == 1
+            x1_values_s2 = [x1_values_s2, (h - dx)];
+            y1_values_s2 = [y1_values_s2, (+dy)];
+        
+        elseif quadrant == 2
+            x1_values_s2 = [x1_values_s2, (-h + dx)];
+            y1_values_s2 = [y1_values_s2, (+dy)];
+        
+        elseif quadrant == 3
+            x1_values_s2 = [x1_values_s2, (-h + dx)];
+            y1_values_s2 = [y1_values_s2, (-dy)];
+        
+        elseif quadrant == 4
+            x1_values_s2 = [x1_values_s2, (+h - dx)];
+            y1_values_s2 = [y1_values_s2, (-dy)];
+        end
+        
+        % increment counter
+        if quadrant == 4
+            quadrant = 1;
+        else
+            quadrant = quadrant + 1;
+        end
+        count = count + 1;
+    end
+end
+
+%% RNG DISTRIBUTION ACROSS CIRCLE(MONTE CARLO METHOD)
+% for circle of radius 1
+
+r_dist_x = [];
+r_dist_y = [];
+
+for i=1:N
+    r_x = rand(1);
+    r_y = rand(1);
+    r_ylim = sqrt(1 - r_x^2);
+    if r_y < r_ylim
+        r_dist_x = [r_dist_x, r_x];
+        r_dist_y = [r_dist_y, r_y];
+    end
+end
+
+%% PLOTTING
+
+figure(1);
+set(figure(1), 'Position', [100, 100, 1000, 400]);
+
+% 2D circular distribution
+subplot(1,2,1)
+title('2D Distribution')
+hold on
+scatter(x1_values, y1_values, s_values, 'r');
+scatter(x1_values_s2, y1_values_s2, s_values_s2, 'b');
+axis([-xlim, xlim, -xlim, xlim]);
+%also plot +x,+y lines
+plot([0,1],[0,0]);
+plot([0,0],[0,1]);
+hold off
+
+% 1D distribution
+subplot(1,2,2)
+title('Radial Distribution Probability Density')
+hold on
+plot(x,y_k);
+plot(x,y_l);
+plot(x,y_e);
+scatter(x_values, y_values, s_values, 'r');
+scatter(x_values_s2, y_values_s2, s_values_s2, 'b');
+legend('constant', 'linear', 'exponential');
+axis([0,1,0,2]);
+hold off
+
+%FIGURE(2): 
+%figure(2);
+%set(figure(2), 'Position', [550, 100, 1000, 400]);
+%subplot(1,2,1)
+%title('Random Sampling within a circle');
+%scatter(r_dist_x, r_dist_y);
+%axis([0,1,0,1]);
+%subplot(1,2,2)
+%title('Probability density across x');
+%bins = 50;
+%[areaDistribution, binAreas] = hist(r_dist_y, bins);
+%bar(binAreas, areaDistribution, 'BarWidth', 1.0);
+%axis([0,1,0,inf]);
+
+t = toc;
+disp('Time for analysis (sec):')
+disp(t)
+
+##### SOURCE END #####
+--></body></html>
